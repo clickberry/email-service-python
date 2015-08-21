@@ -4,23 +4,43 @@ Listens for incomming messages and sends emails.
 
 import nsq
 import simplejson as json
+import sendgrid
 import os
 
-# get lookupd addresses from environment
+# get parameters from environment
 LOOKUPD_ADDRESSES = os.getenv('LOOKUPD_ADDRESSES', '').split(',')
+SENDGRID_USERNAME = os.getenv('SENDGRID_USERNAME', '')
+SENDGRID_PASSWORD = os.getenv('SENDGRID_PASSWORD', '')
 
 def handler(message):
     """
     Handles incoming message.
     """
-    #json_data = json.loads(message)
-    print message.body
+    json_data = json.loads(message.body)
+
+    if not 'email' in json_data:
+        return False
+
+    send_registration_email(json_data['email'])
     return True
+
+def send_registration_email(address):
+    """
+    Sends registration email to specified address.
+    """
+
+    sendgrid_client = sendgrid.SendGridClient(SENDGRID_USERNAME, SENDGRID_PASSWORD)
+    message = sendgrid.Mail(to=address, subject='Welcome to Clickberry', 
+                            html='Welcome to Clickberry', text='Welcome to Clickberry', 
+                            from_email='noreply@clickberry.com')
+    sendgrid_client.send(message)
+
+    print 'Registration email sent to address: %s' % address
 
 # create reader
 READER = nsq.Reader(message_handler=handler,
                     lookupd_http_addresses=LOOKUPD_ADDRESSES,
-                    topic='registrations', channel='email', lookupd_poll_interval=15)
+                    topic='registrations', channel='send-email', lookupd_poll_interval=15)
 
 if __name__ == '__main__':    
 
