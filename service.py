@@ -7,6 +7,9 @@ import simplejson as json
 import sendgrid
 import os
 
+TOPIC_NAME = 'registrations'
+CHANNEL_NAME = 'send-email'
+
 # get parameters from environment
 LOOKUPD_ADDRESSES = os.getenv('LOOKUPD_ADDRESSES', '').split(',')
 SENDGRID_USERNAME = os.getenv('SENDGRID_USERNAME', '')
@@ -40,7 +43,7 @@ def send_registration_email(address):
 # create reader
 READER = nsq.Reader(message_handler=handler,
                     lookupd_http_addresses=LOOKUPD_ADDRESSES,
-                    topic='registrations', channel='send-email', lookupd_poll_interval=15)
+                    topic=TOPIC_NAME, channel=CHANNEL_NAME, lookupd_poll_interval=15)
 
 if __name__ == '__main__':    
 
