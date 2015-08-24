@@ -1,4 +1,5 @@
 """
+Email notification service v0.0.3.
 Listens for incomming messages and sends emails.
 """
 
