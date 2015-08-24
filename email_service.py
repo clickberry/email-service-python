@@ -55,9 +55,9 @@ def registrations_handler(message):
     if not REGISTRATION_TEMPLATE: 
         return False
 
-    template = dict(REGISTRATION_TEMPLATE)
-    subject = template.get('subject')
-    html = template.get('html')
+    template = json.loads(REGISTRATION_TEMPLATE)
+    subject = template['subject']
+    html = template['html']
 
     # get address
     json_data = json.loads(message.body)
@@ -75,8 +75,11 @@ def registrations_handler(message):
 
     # send email
     status, message = sendgrid_client.send(message)
+    if status != 200:
+        print 'Could not sent email to address %s: %s, %s' % (address, status, message)
+        return False
 
-    print 'Registration email sent to address %s: %s' % address, status
+    print 'Registration email sent to address %s' % address
     return True
 
 def listen_password_restores(lookupd_addresses):
