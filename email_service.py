@@ -12,6 +12,12 @@ REGISTRATIONS_TOPIC_NAME = 'registrations'
 REGISTRATIONS_CHANNEL_NAME = 'send-email'
 FROM_EMAIL_DEFAULT = 'noreply@clickberry.com'
 
+# env
+LOOKUPD_ADDRESSES = os.getenv('LOOKUPD_ADDRESSES', '').split(',')
+SENDGRID_USERNAME = os.getenv('SENDGRID_USERNAME')
+SENDGRID_PASSWORD = os.getenv('SENDGRID_PASSWORD')
+REGISTRATION_TEMPLATE = os.getenv('REGISTRATION_TEMPLATE')
+
 def listen(lookupd_addresses=None):
     """
     Define listeners for incoming messages.
@@ -20,7 +26,7 @@ def listen(lookupd_addresses=None):
     # get lookupd addresses
     if lookupd_addresses:
         lookupd_addresses = [lookupd_addresses]
-    lookupd_addresses = lookupd_addresses or os.getenv('LOOKUPD_ADDRESSES', '').split(',')
+    lookupd_addresses = lookupd_addresses or LOOKUPD_ADDRESSES
 
     # listen for registrations
     listen_registrations(lookupd_addresses)
@@ -45,36 +51,29 @@ def registrations_handler(message):
     """
     Handles incoming registration message.
     """
-    json_data = json.loads(message.body)
+    # get template
+    if not REGISTRATION_TEMPLATE: 
+        return False
 
+    template = dict(REGISTRATION_TEMPLATE)
+    subject = template.get('subject')
+    html = template.get('html')
+
+    # get address
+    json_data = json.loads(message.body)
     if not 'email' in json_data:
         return False
 
-    return send_registration_email(json_data['email'])
-
-def send_registration_email(address):
-    """
-    Sends registration email to specified address.
-    """
-
-    registration_template = os.getenv('REGISTRATION_TEMPLATE')
-    if not registration_template: 
-        return False
-
-    # get template
-    template = dict(registration_template)
-    subject = template.get('subject')
-    html = template.get('html')
-    from_email = template.get('from', FROM_EMAIL_DEFAULT)
+    address = json_data['email']
 
     # create sendgrid client
-    username = os.getenv('SENDGRID_USERNAME', '')
-    password = os.getenv('SENDGRID_PASSWORD', '')
-    sendgrid_client = sendgrid.SendGridClient(username, password)
+    sendgrid_client = sendgrid.SendGridClient(SENDGRID_USERNAME, SENDGRID_PASSWORD)
     message = sendgrid.Mail(to=address, 
                             subject=subject, 
                             html=html, 
-                            from_email=from_email)
+                            from_email=FROM_EMAIL_DEFAULT)
+
+    # send email
     status, message = sendgrid_client.send(message)
 
     print 'Registration email sent to address %s: %s' % address, status
