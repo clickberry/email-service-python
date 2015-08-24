@@ -18,9 +18,6 @@ RUN pip install -r requirements.txt
 # Bundle app source
 ADD . /src
 
-# Expose
-EXPOSE  5000
-
 CMD []
 
 # Prepare env vars and start app
