@@ -13,3 +13,9 @@ REGISTRATION_TEMPLATE | {"subject": "Welcome to Clickberry", "html": "&lt;html&g
 
 ## Events
 The service listens for events from the Bus (messaging service).
+
+### Receive events
+
+Topic | Channel | Description
+:-- | :-- | :-- 
+registrations | send-email | Sends registration emails.
