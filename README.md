@@ -1,7 +1,8 @@
 # Dockerized Email Service
-Email notification service on Python. The service listens for incoming messages from NSQ bus and send proper emails for `registration` events.
+Email notification service on Python. The service listens for incoming messages from Bus (messaging service) and send proper emails for `registration` events.
 
 ## Environment Variables
+The service should be properly configured with environment variables.
 
 Key | Value | Description
 :-- | :-- | :-- 
