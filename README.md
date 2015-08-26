@@ -8,7 +8,7 @@ Email notification service on Python. The service listens for events from the Bu
 * [License](#license)
 
 # Architecture
-The application is a worker long-running service listening for messages from the Bus.
+The application is a long-running worker service listening for messages from the Bus.
 
 # Technologies
 * Python 2.7
