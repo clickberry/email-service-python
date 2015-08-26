@@ -29,9 +29,9 @@ The service listens for events from the Bus (messaging service).
 
 ## Receive events
 
-Topic | Channel | Description
-:-- | :-- | :-- 
-registrations | send-email | Sends registration emails.
+Topic | Channel | Params | Description
+:-- | :-- | :-- | :-- 
+registrations | send-email | { email: *recipient_address* } | Sends registration emails.
 
 # License
 Source code is under GNU GPL v3 [license](LICENSE).
