@@ -1,8 +1,18 @@
 # Dockerized Email Service
 Email notification service on Python. The service listens for events from the Bus and sends emails.
 
+* [Architecture](#architecture)
+* [Technologies](#technologies)
 * [Environment Variables](#environment-variables)
 * [Events](#events)
+* [License](#license)
+
+# Architecture
+The application is a worker long-running service listening for messages from the Bus.
+
+# Technologies
+* Python 2.7
+* Official pynsq driver for NSQ messaging service
 
 # Environment Variables
 The service should be properly configured with environment variables.
@@ -22,3 +32,6 @@ The service listens for events from the Bus (messaging service).
 Topic | Channel | Description
 :-- | :-- | :-- 
 registrations | send-email | Sends registration emails.
+
+# License
+Source code is under GNU GPL v3 [license](LICENSE).
