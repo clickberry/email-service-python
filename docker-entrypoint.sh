@@ -8,5 +8,5 @@ fi
 
 echo "LOOKUPD ADDRESSES: ${LOOKUPD_ADDRESSES}"
 
-# execute python application with unbuffered mode
+# execute python application in unbuffered mode
 exec python -u email_service.py
