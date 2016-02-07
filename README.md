@@ -23,6 +23,10 @@ LOOKUPD_ADDRESSES | nsqlookupd1:4161,nsqlookupd2:4161 | TCP addresses for nsqloo
 SENDGRID_USERNAME | sendgrid_username | Sendgrid account user name.
 SENDGRID_PASSWORD | *** | Sendgrid account password.
 REGISTRATION_TEMPLATE | {"subject": "Welcome to Clickberry", "html": "&lt;html&gt;&lt;body&gt;&lt;h1&gt;Welcome to Clickberry&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;"} | HTML template for registration email.
+FEEDBACK_TEMPLATE | {"subject": "Feedback to Clickberry", "html": "&lt;html&gt;&lt;body&gt;&lt;h1&gt;Feedback from %name%&lt;/h1&gt;&lt;p&gt;Message: %comment%&lt;p&gt;&lt;/body&gt;&lt;/html&gt;"} | HTML template for feedback email.
+SUPPORT_EMAIL | support@clickberry.com | Support mailbox.
+FROM_EMAIL_DEFAULT | noreply@clickberry.com | Default noreply sender.
+FEEDBACK_EMAIL_DEFAULT | feedback@clickberry.com | Default feedback sender.
 
 # Events
 The service listens for events from the Bus (messaging service).
