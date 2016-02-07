@@ -36,6 +36,7 @@ The service listens for events from the Bus (messaging service).
 Topic | Channel | Params | Description
 :-- | :-- | :-- | :-- 
 registrations | send-email | { email: *recipient_address* } | Sends registration emails.
+feedbacks | send-email | { name: *sender_name*, email: *sender_address*, comment: *sender_comment* }
 
 # License
 Source code is under GNU GPL v3 [license](LICENSE).
