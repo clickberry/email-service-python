@@ -1,5 +1,5 @@
 """
-Email notification service v0.0.5
+Email notification service v0.0.6
 Listens for incomming messages and sends emails.
 """
 
@@ -114,9 +114,9 @@ def feedbacks_handler(message):
     if not 'comment' in json_data:
         return False
 
-    address = json_data['email'] or FEEDBACK_EMAIL_DEFAULT
-    name = json_data['name'] or 'anonymous'
-    comment = json_data['comment']
+    address = json_data.get('email', default=FEEDBACK_EMAIL_DEFAULT)
+    name = json_data.get('name', default='anonymous')
+    comment = json_data.get('comment')
 
     html = html.replace('%name%', name)
     html = html.replace('%comment%', comment)
