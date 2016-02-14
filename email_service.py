@@ -1,5 +1,5 @@
 """
-Email notification service v0.0.7
+Email notification service v0.0.8
 Listens for incomming messages and sends emails.
 """
 
@@ -16,17 +16,20 @@ except ImportError:
 # constants
 REGISTRATIONS_TOPIC_NAME = 'registrations'
 FEEDBACKS_TOPIC_NAME = 'feedbacks'
+ABUSES_TOPIC_NAME = 'abuses'
 
 # env
 LOOKUPD_ADDRESSES = os.getenv('LOOKUPD_ADDRESSES', '').split(',')
+
 SENDGRID_USERNAME = os.getenv('SENDGRID_USERNAME')
 SENDGRID_PASSWORD = os.getenv('SENDGRID_PASSWORD')
+
 REGISTRATION_TEMPLATE = os.getenv('REGISTRATION_TEMPLATE')
 FEEDBACK_TEMPLATE = os.getenv('FEEDBACK_TEMPLATE')
+ABUSE_TEMPLATE = os.getenv('ABUSE_TEMPLATE')
 
-SUPPORT_EMAIL = os.getenv('SUPPORT_EMAIL') or 'support@clickberry.com'
-FROM_EMAIL_DEFAULT = os.getenv('FROM_EMAIL_DEFAULT') or 'noreply@clickberry.com'
-FEEDBACK_EMAIL_DEFAULT = os.getenv('FEEDBACK_EMAIL_DEFAULT') or 'feedback@clickberry.com'
+SUPPORT_EMAIL = os.getenv('SUPPORT_EMAIL')
+NOREPLY_EMAIL = os.getenv('NOREPLY_EMAIL')
 
 def listen(lookupd_addresses=None):
     """
@@ -47,6 +50,7 @@ def listen(lookupd_addresses=None):
 def register_listeners(lookupd_addresses):
     listen_registrations(lookupd_addresses)
     listen_feedbacks(lookupd_addresses)
+    listen_abuses(lookupd_addresses)
 
 def listen_registrations(lookupd_addresses):
     """
@@ -65,6 +69,16 @@ def listen_feedbacks(lookupd_addresses):
     nsq.Reader(message_handler=feedbacks_handler,
                lookupd_http_addresses=lookupd_addresses,
                topic=FEEDBACKS_TOPIC_NAME, 
+               channel='send-email',
+               lookupd_poll_interval=15)
+
+def listen_abuses(lookupd_addresses):
+    """
+    Listens for abuse messages.
+    """
+    nsq.Reader(message_handler=abuses_handler,
+               lookupd_http_addresses=lookupd_addresses,
+               topic=ABUSES_TOPIC_NAME, 
                channel='send-email',
                lookupd_poll_interval=15)
 
@@ -92,7 +106,7 @@ def registrations_handler(message):
     message = sendgrid.Mail(to=address, 
                             subject=subject, 
                             html=html, 
-                            from_email=FROM_EMAIL_DEFAULT)
+                            from_email=NOREPLY_EMAIL)
 
     # send email
     status, message = sendgrid_client.send(message)
@@ -120,7 +134,7 @@ def feedbacks_handler(message):
     if not 'comment' in json_data:
         return False
 
-    address = json_data.get('email', FEEDBACK_EMAIL_DEFAULT)
+    address = json_data.get('email', NOREPLY_EMAIL)
     name = escape(json_data.get('name', 'anonymous'))
     comment = escape(json_data.get('comment'))
 
@@ -141,6 +155,48 @@ def feedbacks_handler(message):
         return False
 
     print 'Feedback email sent from %s' % address
+    return True
+
+def abuses_handler(message):
+    """
+    Handles incoming abuse messages.
+    """
+    # get template
+    if not ABUSE_TEMPLATE: 
+        return False
+
+    template = json.loads(ABUSE_TEMPLATE)
+    subject = template['subject']
+    html = template['html']
+
+    # parse abuse data
+    json_data = json.loads(message.body)
+    if not 'url' in json_data:
+        return False
+
+    url = escape(json_data.get('url'))
+    address = json_data.get('email', NOREPLY_EMAIL)
+    name = escape(json_data.get('name', 'anonymous'))
+    comment = escape(json_data.get('comment', ''))
+
+    html = html.replace('%url%', url)
+    html = html.replace('%name%', name)
+    html = html.replace('%comment%', comment)
+
+    # create sendgrid client and message
+    sendgrid_client = sendgrid.SendGridClient(SENDGRID_USERNAME, SENDGRID_PASSWORD)
+    message = sendgrid.Mail(to=SUPPORT_EMAIL, 
+                            subject=subject, 
+                            html=html, 
+                            from_email=address)
+
+    # send email
+    status, message = sendgrid_client.send(message)
+    if status != 200:
+        print 'Could not sent email to address %s: %s, %s' % (SUPPORT_EMAIL, status, message)
+        return False
+
+    print 'Abuse email sent from %s' % address
     return True
 
 if __name__ == '__main__':
