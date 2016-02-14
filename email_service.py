@@ -1,5 +1,5 @@
 """
-Email notification service v0.0.6
+Email notification service v0.0.7
 Listens for incomming messages and sends emails.
 """
 
@@ -7,6 +7,11 @@ import nsq
 import simplejson as json
 import sendgrid
 import os
+
+try:
+    from html import escape  # python 3.x
+except ImportError:
+    from cgi import escape  # python 2.x
 
 # constants
 REGISTRATIONS_TOPIC_NAME = 'registrations'
@@ -33,6 +38,7 @@ def listen(lookupd_addresses=None):
         lookupd_addresses = [lookupd_addresses]
     lookupd_addresses = lookupd_addresses or LOOKUPD_ADDRESSES
 
+    # register listeners
     register_listeners(lookupd_addresses)
 
     # start all listeners
@@ -109,19 +115,19 @@ def feedbacks_handler(message):
     subject = template['subject']
     html = template['html']
 
-    # get address
+    # parse feedback data
     json_data = json.loads(message.body)
     if not 'comment' in json_data:
         return False
 
-    address = json_data.get('email', default=FEEDBACK_EMAIL_DEFAULT)
-    name = json_data.get('name', default='anonymous')
-    comment = json_data.get('comment')
+    address = json_data.get('email', FEEDBACK_EMAIL_DEFAULT)
+    name = escape(json_data.get('name', 'anonymous'))
+    comment = escape(json_data.get('comment'))
 
     html = html.replace('%name%', name)
     html = html.replace('%comment%', comment)
 
-    # create sendgrid client
+    # create sendgrid client and message
     sendgrid_client = sendgrid.SendGridClient(SENDGRID_USERNAME, SENDGRID_PASSWORD)
     message = sendgrid.Mail(to=SUPPORT_EMAIL, 
                             subject=subject, 
